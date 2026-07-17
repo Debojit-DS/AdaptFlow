@@ -96,7 +96,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:3001`.
+Frontend will be available at `http://localhost:3001` (or your deployed frontend URL).
 
 ### Backend Setup
 
@@ -118,13 +118,13 @@ cp .env.example .env
 uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Backend will be available at `http://localhost:8000`.
+Backend will be available at `http://localhost:8000` (or `https://adaptflow-1.onrender.com` in production).
 
 ### Environment Variables
 
 **Frontend** (`.env.local`):
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=https://adaptflow-1.onrender.com
 NEXT_PUBLIC_DEMO_MODE=false
 ```
 
