@@ -16,9 +16,8 @@ export default function LandingPage() {
             </h1>
             <p className="text-lg text-silver max-w-2xl mx-auto mb-8 leading-relaxed">
               Not just recommendations — actual, runnable AI-agent replacements for your slow, manual operational workflows.
-            </p>            <button
-              type="button"
-              onClick={() => { window.open("/workspace/new", "_blank"); }}
+            </p>            <a
+              href="/workspace/new"
               style={{
                 display: "inline-block",
                 padding: "20px 40px",
@@ -30,11 +29,10 @@ export default function LandingPage() {
                 textDecoration: "none",
                 cursor: "pointer",
                 border: "4px solid red",
-                pointerEvents: "auto",
               }}
             >
               Try a Live Workflow
-            </button>
+            </a>
           </div>
         </div>
       </section>
