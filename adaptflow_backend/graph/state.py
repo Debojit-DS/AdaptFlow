@@ -13,6 +13,7 @@ from models.schemas import (
 class AdaptFlowState(TypedDict, total=False):
     workflow_description: str
     workflow_logs: Optional[List[str]]
+    job_id: Optional[str]
 
     bottleneck_report: Optional[BottleneckReport]
     opportunities: Optional[List[Opportunity]]

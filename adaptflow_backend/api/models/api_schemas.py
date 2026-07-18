@@ -117,6 +117,8 @@ class SessionResponse(BaseModel):
     metrics: Optional[dict] = None
     confidenceScore: Optional[float] = None
     decision: Optional[str] = None
+    jobId: Optional[str] = None
+    progressPercent: Optional[int] = None
 
 
 class DecisionRequest(BaseModel):

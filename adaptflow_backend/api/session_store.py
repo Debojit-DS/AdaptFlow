@@ -44,6 +44,8 @@ class SessionRecord:
             AuditTrailEntry(timestamp=self.created_at.isoformat(), event="Session created")
         ]
         self.decision = None
+        self.job_id = None
+        self.progress_percent = None
 
     def _workflow_name(self) -> str:
         if self.example_id == "lead-routing":
@@ -156,7 +158,20 @@ class SessionRecord:
             },
             confidenceScore=self.confidence_score,
             decision=self.decision,
+            jobId=getattr(self, 'job_id', None),
         )
+
+    def sync_from_job(self, job_state, progress_percent=None):
+        self.status = job_state.get('status', self.status)
+        self.stage = job_state.get('current_stage', self.stage)
+        self.audit_trail = [AuditTrailEntry(timestamp=datetime.now(timezone.utc).isoformat(), event=f'Stage: {self.stage}')]
+        if progress_percent is not None:
+            self.progress_percent = progress_percent
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 
 class SessionStore:
@@ -164,10 +179,11 @@ class SessionStore:
         self._store: Dict[str, SessionRecord] = {}
         self._lock = Lock()
 
-    def create(self, request: SessionCreateRequest) -> SessionResponse:
+    def create(self, request: SessionCreateRequest, job_id=None) -> SessionResponse:
         with self._lock:
             session_id = str(uuid4())
             record = SessionRecord(request, session_id)
+            record.job_id = job_id
             self._store[session_id] = record
             return record.to_response()
 
