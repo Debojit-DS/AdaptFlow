@@ -19,10 +19,12 @@ def get_llm(agent_name: str, *, max_tokens: Optional[int] = None) -> dict[str, A
         model = GROQ_MODEL
         max_tokens = max_tokens or 2048
 
+    provider = "groq" if os.getenv("GROQ_API_KEY") else "mock"
+    print(f"[LLM] agent={agent_name} model={model} provider={provider} max_tokens={max_tokens}")
     return {
         "model": model,
         "max_tokens": max_tokens,
-        "provider": "groq" if os.getenv("GROQ_API_KEY") else "mock",
+        "provider": provider,
     }
 
 
@@ -52,8 +54,10 @@ def _call_groq(prompt: str, model: str, max_tokens: int) -> str:
         "temperature": 0.2,
     }
 
+    print(f"[Groq] Calling model={model} max_tokens={max_tokens}")
     with httpx.Client(timeout=60) as client:
         response = client.post(url, headers=headers, json=payload)
+        print(f"[Groq] Status={response.status_code}")
         response.raise_for_status()
         data = response.json()
 
@@ -65,6 +69,7 @@ def _call_groq(prompt: str, model: str, max_tokens: int) -> str:
     if not content:
         raise RuntimeError("Groq response content is empty")
 
+    print(f"[Groq] Response length={len(content)}")
     return content
 
 
@@ -91,11 +96,15 @@ def invoke_structured_llm_with_retry(
     for attempt in range(retries):
         try:
             if llm["provider"] == "groq":
+                print(f"[LLM] Attempt {attempt+1}/{retries} using Groq")
                 raw = _call_groq(prompt, llm["model"], llm["max_tokens"])
                 data = _extract_json(raw)
+                print(f"[LLM] Parsed JSON keys={list(data.keys())[:5]}")
                 return schema.model_validate(data)
+            print(f"[LLM] Using mock data for {agent_name}")
             return schema.model_validate(_mock_payload_for_schema(schema))
         except Exception as exc:
+            print(f"[LLM] Error on attempt {attempt+1}: {type(exc).__name__}: {exc}")
             if on_error:
                 on_error(exc)
             if attempt < retries - 1:
