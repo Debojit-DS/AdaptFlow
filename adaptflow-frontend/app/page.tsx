@@ -17,7 +17,7 @@ export default function LandingPage() {
             <p className="text-lg text-silver max-w-2xl mx-auto mb-8 leading-relaxed">
               Not just recommendations — actual, runnable AI-agent replacements for your slow, manual operational workflows.
             </p>            <a
-              href="/workspace/new"
+              href="/workspace/new/page.tsx"
               style={{
                 display: "inline-block",
                 padding: "20px 40px",
