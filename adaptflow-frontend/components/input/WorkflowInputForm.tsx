@@ -12,6 +12,7 @@ import { DemoExamplePicker } from "@/components/input/DemoExamplePicker";
 import { useCreateSession } from "@/lib/hooks/useSession";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   inputType: z.enum(["text", "file", "example"]),
@@ -38,8 +39,13 @@ export function WorkflowInputForm() {
       content: values.content,
       exampleId: values.exampleId || undefined,
     };
-    const result = await createSession.mutateAsync(payload);
-    router.push(`/workspace/session/${result.sessionId}`);
+    try {
+      const result = await createSession.mutateAsync(payload);
+      router.push(`/workspace/session/${result.sessionId}`);
+    } catch (error) {
+      toast.error("Failed to create workflow. Please try again.");
+      console.error("Create session error:", error);
+    }
   };
 
   return (
