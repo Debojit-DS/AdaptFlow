@@ -4,7 +4,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-board-bg">
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#d4a24c 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#d4a24c 1px, transparent 1px)", backgroundSize: "24px 24px" }}/>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-pill bg-copper/10 border border-copper/20 mb-6">
@@ -17,7 +17,7 @@ export default function LandingPage() {
             <p className="text-lg text-silver max-w-2xl mx-auto mb-8 leading-relaxed">
               Not just recommendations — actual, runnable AI-agent replacements for your slow, manual operational workflows.
             </p>            <a
-              href="/workspace/new/page.tsx"
+              href="/workspace/new"
               style={{
                 display: "inline-block",
                 padding: "20px 40px",
