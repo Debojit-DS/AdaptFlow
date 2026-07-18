@@ -11,7 +11,7 @@ import { DiagnoseStageView } from "@/components/pipeline/DiagnoseStageView";
 import { MigrateStageView } from "@/components/pipeline/MigrateStageView";
 import { VisualizeStageView } from "@/components/pipeline/VisualizeStageView";
 import { useWorkflowSocket } from "@/lib/hooks/useWorkflowSocket";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -26,12 +26,21 @@ export default function SessionPage() {
   const setActiveStage = useSessionStore((s) => s.setActiveStage);
   const setSessionId = useSessionStore((s) => s.setSessionId);
   const mode = useSessionStore((s) => s.mode);
+  const initialModeRef = useRef(mode);
 
   useWorkflowSocket(sessionId);
 
   useEffect(() => {
     setSessionId(sessionId);
   }, [sessionId, setSessionId]);
+
+  useEffect(() => {
+    if (mode !== initialModeRef.current && isError) {
+      setSessionId(null);
+      setActiveStage("parse");
+      router.push("/workspace/new");
+    }
+  }, [mode, isError, router, setSessionId, setActiveStage]);
 
   useEffect(() => {
     if (!session) return;
