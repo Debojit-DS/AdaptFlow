@@ -1,4 +1,5 @@
 import os
+import json
 import random
 import time
 from typing import Any, Callable, Optional, TypeVar
@@ -10,7 +11,7 @@ from config.settings import CODE_GENERATOR_MAX_TOKENS, GROQ_MODEL, GROQ_MODEL_CO
 T = TypeVar("T", bound=BaseModel)
 
 
-def get_llm(agent_name: str, *, max_tokens: Optional[int] = None) -> Any:
+def get_llm(agent_name: str, *, max_tokens: Optional[int] = None) -> dict[str, Any]:
     if agent_name == "code_generator":
         model = GROQ_MODEL_CODE_GENERATOR
         max_tokens = max_tokens or CODE_GENERATOR_MAX_TOKENS
@@ -21,8 +22,59 @@ def get_llm(agent_name: str, *, max_tokens: Optional[int] = None) -> Any:
     return {
         "model": model,
         "max_tokens": max_tokens,
-        "provider": "mock",
+        "provider": "groq" if os.getenv("GROQ_API_KEY") else "mock",
     }
+
+
+def _call_groq(prompt: str, model: str, max_tokens: int) -> str:
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY is not set")
+
+    import httpx
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": (
+                    "Respond with valid JSON only, no markdown fences, no extra text.\n\n" + prompt
+                ),
+            }
+        ],
+        "max_tokens": max_tokens,
+        "temperature": 0.2,
+    }
+
+    with httpx.Client(timeout=60) as client:
+        response = client.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()
+
+    choices = data.get("choices") or []
+    if not choices:
+        raise RuntimeError("Groq response did not include any choices")
+
+    content = choices[0].get("message", {}).get("content", "")
+    if not content:
+        raise RuntimeError("Groq response content is empty")
+
+    return content
+
+
+def _extract_json(text: str) -> dict[str, Any]:
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[-1]
+    if text.endswith("```"):
+        text = text[:-3]
+    return json.loads(text)
 
 
 def invoke_structured_llm_with_retry(
@@ -36,13 +88,13 @@ def invoke_structured_llm_with_retry(
 ) -> T:
     llm = get_llm(agent_name, max_tokens=max_tokens)
 
-    mock_payload = _mock_payload_for_schema(schema)
-
     for attempt in range(retries):
         try:
-            if os.getenv("GROQ_API_KEY"):
-                return schema.model_validate(mock_payload)
-            return schema.model_validate(mock_payload)
+            if llm["provider"] == "groq":
+                raw = _call_groq(prompt, llm["model"], llm["max_tokens"])
+                data = _extract_json(raw)
+                return schema.model_validate(data)
+            return schema.model_validate(_mock_payload_for_schema(schema))
         except Exception as exc:
             if on_error:
                 on_error(exc)
