@@ -11,12 +11,7 @@ app = FastAPI(title="AdaptFlow API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://adaptflow-1.onrender.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://adapt-flow.vercel.app",
-    ],
+    allow_origin_regex=r"https://.*\.vercel\.app|https://adapt-flow\.vercel\.app|http://localhost:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
