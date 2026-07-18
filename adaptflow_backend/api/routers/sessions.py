@@ -70,13 +70,6 @@ def get_session(session_id: str) -> SessionResponse:
     response = session_store.get(session_id)
     if response is None:
         raise HTTPException(status_code=404, detail='Session not found')
-    job = job_store.get(session_id)
-    if job:
-        session_store._store[session_id].sync_from_job(
-            job.state,
-            progress_percent=job.state.get('progress_percent'),
-        )
-        response = session_store.get(session_id)
     return response
 
 
