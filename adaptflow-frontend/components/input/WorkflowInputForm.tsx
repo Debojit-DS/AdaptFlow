@@ -43,7 +43,8 @@ export function WorkflowInputForm() {
       const result = await createSession.mutateAsync(payload);
       router.push(`/workspace/session/${result.sessionId}`);
     } catch (error) {
-      toast.error("Failed to create workflow. Please try again.");
+      const message = error instanceof Error ? error.message : "Failed to create workflow. Please try again.";
+      toast.error(message);
       console.error("Create session error:", error);
     }
   };
